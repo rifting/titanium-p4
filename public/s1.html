@@ -10,6 +10,9 @@
   <link rel="stylesheet" href="./css/stylesheet.min.css">
   <link href="./font/fontawesome/css/all.css" rel="stylesheet">
   <link href="./img/logo.png" rel="icon" type="image/x-icon" />
+  <script src="/scram/scramjet.all.js"></script>
+  <script src="/baremux/index.js"></script>
+  <script src="/register-sw.js" defer></script>
 
 </head>
   <body>
@@ -32,24 +35,62 @@
         </center>
         <center>
               <!--<form action="" method="get" id="web-search-box" style="transform:scale(1.1)">-->
-              <form action="/createSession" id="web-search-box" method="post" style="transform:scale(1.1)">
+              <form action="./geographic/index.php" id="web-search-box" method="post" style="transform:scale(1.1)">
 							<p>
                 <input type="text" placeholder="Enter URL" style="border:none;border-radius: 5px;padding:10px;" id="url" autocomplete="false" name="url" />&nbsp;
-                <input type="button" id="node"  class="selbuttons" value="AL" />
+                <input type="button" id="node"  class="selbuttons" value="SJ" />
                 <script>
-                
-                  function redirect(str) {
-                    return location.href = '/alloy?url=' + btoa(str)
-                  }
+                  function $(id) {return document.getElementById(id);}
+                  var url = window.location.hostname;
+                    var domain = url.replace('www.','').split(/[/?#]/)[0];
+                  const { ScramjetController } = $scramjetLoadController();
+                  const scramjet = new ScramjetController({
+                    files: {
+                      wasm: '/scram/scramjet.wasm.wasm',
+                      all: '/scram/scramjet.all.js',
+                      sync: '/scram/scramjet.sync.js'
+                    }
+                  });
+                  scramjet.init();
+                  const connection = new BareMux.BareMuxConnection('/baremux/worker.js');
+
+                  document.getElementById('node').onclick = async function viashit() {
+                    var url = $('url').value;
+                    try {
+                      await registerSW();
+                      var target = url;
+                      try { target = new URL(url).toString(); } catch (error) {
+                        target = new URL('http://' + url).toString();
+                      }
+                      var wispUrl = (location.protocol === 'https:' ? 'wss' : 'ws') +
+                        '://' + location.host + '/wisp/';
+                      if ((await connection.getTransport()) !== '/libcurl/index.mjs') {
+                        await connection.setTransport('/libcurl/index.mjs', [{ websocket: wispUrl }]);
+                      }
+                      var frame = scramjet.createFrame();
+                      frame.frame.id = 'sj-frame';
+                      document.body.appendChild(frame.frame);
+                      document.body.classList.add('scramjet-active');
+                      frame.go(target);
+                    } catch (error) {
+                      console.error(error);
+                    }
+                    return false;};
+                  document.getElementById('web-search-box').addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    document.getElementById('node').click();
+                  });
+                  window.onload = function() {$('url').focus();}
                   //these are the shortcut buttons
-                  function googlekey(){redirect("google.com")}
-                  function startpagekey(){redirect("startpage.com")}
-                  function andkonkey(){redirect("andkon.com")}
-                  function youtubekey(){redirect("youtube.com")}
-                  function snake(){redirect("littlebigsnake.com")}
-                  function surviv(){redirect("surviv.io")}
-                  function shellshock(){redirect("shellshock.io")}
-                  function defly(){redirect("defly.io")}
+                  function invidiokey(){document.getElementById("url").value = "invidio.us";}
+                  function googlekey(){document.getElementById("url").value = "google.com";}
+                  function startpagekey(){document.getElementById("url").value = "startpage.com";}
+                  function andkonkey(){document.getElementById("url").value = "andkon.com";}
+                  function youtubekey(){document.getElementById("url").value = "youtube.com";}
+                  function quack(){document.getElementById("url").value = "duckduckgo.com";}
+                  function surviv(){document.getElementById("url").value = "surviv.io";}
+                  function mope(){document.getElementById("url").value = "mope.io";}
+                  function defly(){document.getElementById("url").value = "defly.io";}
                 </script>
 							</p>
 						</form>
@@ -58,20 +99,20 @@
           <h3>Info:</h3>
             <h4>You must agree to the AUP, Terms of Service, and Privacy Policy documents before using these services. (visible in the page footer)</h4>
             <!--<h4>-PHP Pr<span><h1 style="display:none">...</h1></span><span style='color: white'>ox</span>y (PHP): Local pr<span><h1 style="display:none">...</h1></span><span style='color: white'>ox</span>y script that is capable of proxifying static websites.</h4>-->
-            <h4>-Alloy<span><h1 style="display:none">...</h1></span><span style='color: white'></span> (AL): Amazing pr<span><h1 style="display:none">...</h1></span><span style='color: white'>ox</span>y which is capable of unbl<span><h1 style="display:none">...</h1></span><span style='color: white'>oc</span>king websites with amazing compatibility, also featuring URL encoding</h4>
-            <h6>TitaniumNetwork is supported by only one ad. If you do not wish to view it, use uBlock Origin. (mirror webmaster is free to remove if they want)</h6>
-            <iframe data-aa="1390211" src="//ad.a-ads.com/1390211?size=728x90&background_color=d18d2e&title_color=000000" scrolling="no" style="width:728px; height:90px; border:0px; padding:0; overflow:hidden" allowtransparency="true"></iframe>
+            <h4>Scramjet (SJ): Scramjet is a versatile web proxy designed to bypass internet censorship.</h4>
+            <!--<h6>TitaniumNetwork is supported by only one ad. If you do not wish to view it, use uBlock Origin. (mirror webmaster is free to remove if they want)</h6>
+            <iframe data-aa="1390211" src="//ad.a-ads.com/1390211?size=728x90&background_color=d18d2e&title_color=000000" scrolling="no" style="width:728px; height:90px; border:0px; padding:0; overflow:hidden" allowtransparency="true"></iframe>-->
             <h3>Server Status:</h3>
-            <h4>AL: (<span style='color: green'>Running...</span>)</h4>
+            <h4>Wisp: (<span style='color: green'>Running...</span>)</h4>
                         <div class="d-box">
               <h1>Official Support List:</h1>
+              <h3><a href="#" onclick="invidiokey()">Invidious</a> (Video Streaming)</h3>
               <h3><a href="#" onclick="googlekey()">Google</a> (Search Engine)</h3>
               <h3><a href="#" onclick="startpagekey()">Startpage</a> (Search Engine)</h3>
               <h3><a href="#" onclick="andkonkey()">Andkon</a> (Gaming)</h3>
               <h3><a href="#" onclick="defly()">Defly</a> (Gaming)</h3>
               <h3><a href="#" onclick="surviv()">Surviv</a> (Gaming)</h3>
-              <h3><a href="#" onclick="snake()">LittleBigSnake</a> (Gaming)</h3>
-              <h3><a href="#" onclick="shellshock()">ShellShock</a> (Gaming)</h3>
+              <h3><a href="#" onclick="mope()">Mope</a> (Gaming)</h3>
               <h3><a href="#" onclick="youtubekey()">YouTube</a> (Video Streaming)</h3>
             </div>
         </center>
